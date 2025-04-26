@@ -1,0 +1,18 @@
+<div class="container">
+  <h2>Product Details</h2>
+  
+  <div class="product-details">
+    <h3><%= product.name %></h3>
+    <p><strong>ID:</strong> <%= product.id %></p>
+    <p><strong>Price:</strong> $<%= product.price.toFixed(2) %></p>
+    <p><strong>Description:</strong> <%= product.description %></p>
+  </div>
+  
+  <div class="actions">
+    <a href="/products" class="btn">Back to All Products</a>
+    <a href="/products/<%= product.id %>/edit" class="btn">Edit</a>
+    <form action="/products/<%= product.id %>/delete" method="POST" style="display: inline;">
+      <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,38 @@
+<div class="container">
+  <h2>All Products</h2>
+  
+  <% if (products.length === 0) { %>
+    <p>No products found.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach(product => { %>
+          <tr>
+            <td><%= product.id %></td>
+            <td><%= product.name %></td>
+            <td>$<%= product.price.toFixed(2) %></td>
+            <td>
+              <a href="/products/<%= product.id %>">View</a>
+              <a href="/products/<%= product.id %>/edit">Edit</a>
+              <form action="/products/<%= product.id %>/delete" method="POST" style="display: inline;">
+                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+  
+  <div class="actions">
+    <a href="/products/new" class="btn">Add New Product</a>
+  </div>
+</div>
