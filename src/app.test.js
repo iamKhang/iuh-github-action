@@ -2,77 +2,135 @@ const request = require('supertest');
 const app = require('./app');
 const Product = require('./models/product');
 
-describe('Product API Routes', () => {
+describe('Product Routes', () => {
   let server;
+  let testProduct;
 
   beforeAll(() => {
-    server = app.listen(0); // Use random port
+    server = app.listen(0);
   });
 
   afterAll((done) => {
     server.close(done);
   });
 
-  // Reset products before each test
   beforeEach(() => {
-    // Access the private products array and reset it
-    const originalProducts = Product.getAll();
-    while (originalProducts.length > 0) {
-      Product.delete(originalProducts[0].id);
+    // Clear all products
+    const products = Product.getAll();
+    while (products.length > 0) {
+      Product.delete(products[0].id);
     }
     
-    // Add test products
-    Product.create({ name: 'Test Product 1', price: 100, description: 'Test Description 1' });
-    Product.create({ name: 'Test Product 2', price: 200, description: 'Test Description 2' });
+    // Create a test product
+    testProduct = Product.create({ 
+      name: 'Test Product', 
+      price: 100, 
+      description: 'Test Description' 
+    });
   });
 
-  test('GET /products should return products page', async () => {
-    const response = await request(app).get('/products');
-    expect(response.status).toBe(200);
-    expect(response.text).toContain('All Products');
-    expect(response.text).toContain('Test Product 1');
-    expect(response.text).toContain('Test Product 2');
+  describe('GET /products', () => {
+    test('should return products page with all products', async () => {
+      const response = await request(app).get('/products');
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('All Products');
+      expect(response.text).toContain('Test Product');
+    });
   });
 
-  test('GET /products/new should return new product form', async () => {
-    const response = await request(app).get('/products/new');
-    expect(response.status).toBe(200);
-    expect(response.text).toContain('Add New Product');
-    expect(response.text).toContain('<form action="/products" method="POST">');
+  describe('GET /products/new', () => {
+    test('should return new product form', async () => {
+      const response = await request(app).get('/products/new');
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Add New Product');
+      expect(response.text).toContain('<form action="/products" method="POST">');
+    });
   });
 
-  test('POST /products should create a new product', async () => {
-    const initialProducts = Product.getAll();
-    const initialCount = initialProducts.length;
-    
-    const response = await request(app)
-      .post('/products')
-      .type('form')
-      .send({
-        name: 'New Test Product',
-        price: 300,
-        description: 'New Test Description'
-      });
-    
-    expect(response.status).toBe(302); // Redirect
-    expect(response.headers.location).toBe('/products');
-    
-    const updatedProducts = Product.getAll();
-    expect(updatedProducts.length).toBe(initialCount + 1);
-    
-    const newProduct = updatedProducts.find(p => p.name === 'New Test Product');
-    expect(newProduct).toBeDefined();
-    expect(newProduct.price).toBe(300);
+  describe('POST /products', () => {
+    test('should create a new product and redirect', async () => {
+      const newProduct = {
+        name: 'New Product',
+        price: 200,
+        description: 'New Description'
+      };
+
+      const response = await request(app)
+        .post('/products')
+        .type('form')
+        .send(newProduct);
+
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toBe('/products');
+
+      const products = Product.getAll();
+      const createdProduct = products.find(p => p.name === newProduct.name);
+      expect(createdProduct).toBeDefined();
+      expect(createdProduct.price).toBe(newProduct.price);
+    });
   });
 
-  test('GET /products/:id should return product details', async () => {
-    const products = Product.getAll();
-    const productId = products[0].id;
-    
-    const response = await request(app).get(`/products/${productId}`);
-    expect(response.status).toBe(200);
-    expect(response.text).toContain('Product Details');
-    expect(response.text).toContain('Test Product 1');
-    expect(response.text).toContain('Test Description 1');
+  describe('GET /products/:id', () => {
+    test('should return product details page', async () => {
+      const response = await request(app).get(`/products/${testProduct.id}`);
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Product Details');
+      expect(response.text).toContain('Test Product');
+    });
+
+    test('should return 404 for non-existent product', async () => {
+      const response = await request(app).get('/products/non-existent-id');
+      expect(response.status).toBe(404);
+      expect(response.text).toContain('Product not found');
+    });
+  });
+
+  describe('GET /products/:id/edit', () => {
+    test('should return edit form for existing product', async () => {
+      const response = await request(app).get(`/products/${testProduct.id}/edit`);
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Edit Product');
+      expect(response.text).toContain(testProduct.name);
+    });
+
+    test('should return 404 for non-existent product', async () => {
+      const response = await request(app).get('/products/non-existent-id/edit');
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe('POST /products/:id', () => {
+    test('should update product and redirect', async () => {
+      const updatedData = {
+        name: 'Updated Product',
+        price: 150,
+        description: 'Updated Description'
+      };
+
+      const response = await request(app)
+        .post(`/products/${testProduct.id}`)
+        .type('form')
+        .send(updatedData);
+
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toBe('/products');
+
+      const updatedProduct = Product.getById(testProduct.id);
+      expect(updatedProduct.name).toBe(updatedData.name);
+      expect(updatedProduct.price).toBe(updatedData.price);
+    });
+  });
+
+  describe('POST /products/:id/delete', () => {
+    test('should delete product and redirect', async () => {
+      const response = await request(app)
+        .post(`/products/${testProduct.id}/delete`);
+
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toBe('/products');
+
+      const deletedProduct = Product.getById(testProduct.id);
+      expect(deletedProduct).toBeUndefined();
+    });
   });
 });
