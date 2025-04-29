@@ -5,10 +5,13 @@ const Product = require('./models/product');
 describe('Product Routes', () => {
   let server;
   let testProduct;
+  let baseUrl;
 
   beforeAll((done) => {
     server = app.listen(0, () => {
-      console.log('Test server started');
+      const port = server.address().port;
+      baseUrl = `http://localhost:${port}`;
+      console.log(`Test server started on ${baseUrl}`);
       done();
     });
   });

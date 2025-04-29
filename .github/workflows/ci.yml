@@ -30,9 +30,9 @@ jobs:
     - name: Run tests with timeout
       run: |
         echo "Starting tests..."
-        timeout 60s npm test -- --verbose --detectOpenHandles
+        timeout 30s npm test -- --verbose --detectOpenHandles --forceExit
         if [ $? -eq 124 ]; then
-          echo "Tests timed out after 60 seconds"
+          echo "Tests timed out after 30 seconds"
           exit 1
         elif [ $? -ne 0 ]; then
           echo "Tests failed"
@@ -41,7 +41,6 @@ jobs:
       env:
         NODE_ENV: test
         CI: true
-        DEBUG: 'express:*'
     
     - name: Upload test results
       if: always()
