@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
 
     strategy:
       matrix:
@@ -27,19 +27,27 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Run tests with coverage
+    - name: Run tests with timeout
       run: |
-        npm test -- --coverage --verbose
-        if [ $? -ne 0 ]; then
+        echo "Starting tests..."
+        timeout 60s npm test -- --verbose --detectOpenHandles
+        if [ $? -eq 124 ]; then
+          echo "Tests timed out after 60 seconds"
+          exit 1
+        elif [ $? -ne 0 ]; then
           echo "Tests failed"
           exit 1
         fi
       env:
         NODE_ENV: test
         CI: true
+        DEBUG: 'express:*'
     
-    - name: Upload coverage reports
+    - name: Upload test results
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report
-        path: coverage/
+        name: test-results
+        path: |
+          coverage/
+          *.log

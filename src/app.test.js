@@ -6,12 +6,22 @@ describe('Product Routes', () => {
   let server;
   let testProduct;
 
-  beforeAll(() => {
-    server = app.listen(0);
+  beforeAll((done) => {
+    server = app.listen(0, () => {
+      console.log('Test server started');
+      done();
+    });
   });
 
   afterAll((done) => {
-    server.close(done);
+    if (server) {
+      server.close(() => {
+        console.log('Test server closed');
+        done();
+      });
+    } else {
+      done();
+    }
   });
 
   beforeEach(() => {
