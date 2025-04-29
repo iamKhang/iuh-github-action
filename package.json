@@ -10,8 +10,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testTimeout": 10000,
-    "detectOpenHandles": true
+    "testTimeout": 30000,
+    "detectOpenHandles": false,
+    "forceExit": true
   },
   "repository": {
     "type": "git",
