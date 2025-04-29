@@ -3,6 +3,16 @@ const app = require('./app');
 const Product = require('./models/product');
 
 describe('Product API Routes', () => {
+  let server;
+
+  beforeAll(() => {
+    server = app.listen(0); // Use random port
+  });
+
+  afterAll((done) => {
+    server.close(done);
+  });
+
   // Reset products before each test
   beforeEach(() => {
     // Access the private products array and reset it
