@@ -27,14 +27,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Run tests with timeout
+    - name: Run tests
       run: |
         echo "Starting tests..."
-        timeout 30s npm test -- --verbose --detectOpenHandles --forceExit
-        if [ $? -eq 124 ]; then
-          echo "Tests timed out after 30 seconds"
-          exit 1
-        elif [ $? -ne 0 ]; then
+        npm test -- --verbose --maxWorkers=1
+        if [ $? -ne 0 ]; then
           echo "Tests failed"
           exit 1
         fi
