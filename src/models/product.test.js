@@ -3,10 +3,11 @@ const Product = require('./product');
 describe('Product Model', () => {
   // Reset products before each test
   beforeEach(() => {
-    // Access the private products array and reset it
-    const originalProducts = Product.getAll();
-    while (originalProducts.length > 0) {
-      Product.delete(originalProducts[0].id);
+    // Reset products array
+    const products = Product.getAll();
+    while (products.length > 0) {
+      const productId = products[0].id;
+      Product.delete(productId);
     }
     
     // Add test products
